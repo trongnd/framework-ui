@@ -1,0 +1,12 @@
+{
+  "name": "@ui.core/compose",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": "22.18.0"
+  },
+  "devDependencies": {
+    "@platform/bundler.types": "workspace:^",
+    "@platform/workspace.config": "workspace:^"
+  }
+}

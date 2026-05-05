@@ -1,0 +1,39 @@
+// @generated: DO NOT EDIT!
+// @preset: lib_react
+
+{
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "compilerOptions": {
+    "incremental": true,
+    "noEmit": true,
+    "tsBuildInfoFile": "node_modules/.cache/tsconfig/.tsbuildinfo",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+    "preserveSymlinks": false,
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2015",
+      "ES2016",
+      "ES2017",
+      "ES2018",
+      "ES2019",
+      "ES2020",
+      "DOM"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@platform/react.jsx_runtime",
+    "types": [
+      "@platform/bundler.types/types"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# app
+*.local
+*.local.*
+cosmos.imports.*
+
+# common
+node_modules
+.turbo
+.build
+.local
+.env*
+*.jks
+*.keystore
+
+# IDE
+.vscode/settings.json
+.idea
+.aider*
