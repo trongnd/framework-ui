@@ -1,5 +1,12 @@
-import { createBuilder, createBuilderData, createFinalizer, getCurrentBuilderState } from '@ui.core/compose';
-import type { BuilderData, BuilderState, UnitRecord } from '@ui.core/compose';
+import {
+  createBuilder,
+  createBuilderData,
+  createFinalizer,
+  extendBuilder,
+  getCurrentBuilderState,
+} from '@ui.core/compose';
+import type { Builder, BuilderData, BuilderState, FinalizerRecord, UnitRecord } from '@ui.core/compose';
+import { withBuilderState } from '@ui.core/compose/src/state';
 import { createContext, createElement, useContext, useMemo } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 
@@ -25,37 +32,83 @@ function FieldBuilderProvider(props: FieldBuilderProviderProps) {
 export type FieldRenderer = () => ReactElement;
 
 export function createFieldRender(render: FieldRenderer) {
-  function RenderContent() {
-    return render();
+  return render;
+}
+
+type FieldRenderWrapperFn = (args: { content: ReactElement; }) => ReactElement;
+
+export function fieldRenderWrapper(
+  fn: FieldRenderWrapperFn,
+) {
+  return fn;
+}
+
+export function createFieldRenderWrapper(
+  fn: FieldRenderWrapperFn,
+) {
+  return (render: FieldRenderer) => applyFieldRenderWrapper(fn, render);
+}
+
+export function applyFieldRenderWrapper(
+  fn: FieldRenderWrapperFn,
+  render: FieldRenderer,
+) {
+  return createFieldRender(() => fn({ content: render() }));
+}
+
+/* builder */
+
+function createFielRenderFinalizer(render: FieldRenderer) {
+  function RenderContent(props: { state: BuilderState; render: FieldRenderer; }) {
+    const { state, render } = props;
+
+    return withBuilderState(state, () => render());
   }
 
-  return createFinalizer(() => {
+  return createFinalizer((customRender?: FieldRenderer) => {
     const state = getCurrentBuilderState();
 
     return createElement(
       FieldBuilderProvider,
       { state },
-      createElement(RenderContent),
+      state && createElement(RenderContent, {
+        state,
+        render: customRender || render,
+      }),
     );
   });
 }
-
-/* builder */
 
 export function createFieldBuilder<Units extends UnitRecord>(
   units: Units,
   render: FieldRenderer,
 ) {
-  return createBuilder(units, { finalizer: { render } });
+  return createBuilder(units, {
+    finalizers: { render: createFielRenderFinalizer(render) },
+  });
 }
 
-// oxlint-disable-next-line no-unused-vars
+export function extendFieldBuilder<Units extends UnitRecord, Finalizers extends FinalizerRecord>(
+  builder: Builder<Units, Finalizers>,
+  args: { render: FieldRenderer; },
+) {
+  return extendBuilder(builder, {
+    finalizers: { render: args.render },
+  });
+}
+
 export function useFieldBuilder<Units extends UnitRecord>(units: Units) {
   const data = useContext(FieldBuilderContext);
 
   if (!data) {
     throw new Error('useFieldBuilder: builder not provided');
   }
+
+  const filteredData: typeof data = {};
+
+  Object.keys(units).forEach((key) => {
+    filteredData[key] = data[key];
+  });
 
   return { data: data as BuilderData<Units> };
 }

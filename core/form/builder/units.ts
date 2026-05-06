@@ -15,6 +15,10 @@ export function field<ValueBase extends FieldValueAny, DataBase extends FormData
 }
 
 export const visible = unit.optional<boolean>();
+export const enabled = unit.optional<boolean>();
+export const disabled = unit.optional<boolean>();
+export const readOnly = unit.optional<boolean>();
+export const required = unit.optional<boolean>();
 
 export const label = unit.value<TextContent>();
 export const placeholder = unit.value<TextContent>();

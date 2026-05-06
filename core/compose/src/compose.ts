@@ -3,6 +3,7 @@ import type { BuilderState, BuilderStateData, BuilderStateMethods } from './stat
 
 const CONTEXT = Symbol('compose::context');
 const INTERNAL = Symbol('compose::internal');
+const BUILDER = Symbol('compose::builder');
 
 /* unit */
 
@@ -82,13 +83,15 @@ export function compose<Units extends UnitRecord>(options: ComposeOptions<Units>
 
 /* finalizer */
 
-export type BuilderFinalizer<T = unknown> = () => T;
+export type FinalizerRecord = Record<string, BuilderFinalizer<any, any>>;
 
-export function createFinalizer<T>(fn: BuilderFinalizer<T>): BuilderFinalizer<T> {
+export type BuilderFinalizer<Args extends any[] = unknown[], Result = unknown> = (...args: Args) => Result;
+
+export function createFinalizer<Args extends any[], Result>(
+  fn: BuilderFinalizer<Args, Result>,
+): BuilderFinalizer<Args, Result> {
   return fn;
 }
-
-type FinalizerRecord = Record<string, BuilderFinalizer>;
 
 /* builder */
 
@@ -117,17 +120,27 @@ export type GetContext<Builder, T extends string> = Builder extends IBuilder<
 > ? Context
   : never;
 
-export type Builder<BuilderValue> = {
-  [INTERNAL]: { builder: BuilderValue; };
-  fields: string[];
-};
-
 export type BuilderOptions<Finalizers extends FinalizerRecord> = {
-  finalizer?: Finalizers;
+  finalizers?: Finalizers;
 };
 
 export type UnitValues<Units extends UnitRecord> = {
   [P in keyof Units]: UnitValue<Units[P]> | undefined;
+};
+
+export type BuilderMetadata<
+  Units extends UnitRecord = {},
+  Finalizers extends FinalizerRecord = {},
+> = {
+  units: Units;
+  finalizers: Finalizers;
+};
+
+export type Builder<
+  Units extends UnitRecord = {},
+  Finalizers extends FinalizerRecord = {},
+> = {
+  [BUILDER]: BuilderMetadata<Units, Finalizers>;
 };
 
 export function createBuilder<
@@ -142,29 +155,27 @@ export function createBuilder<
     : compose({ units: descriptorOrUnits });
 
   type FinalizerFns = {
-    [P in keyof Finalizers]: () => ReturnType<Finalizers[P]>;
+    [P in keyof Finalizers]: (...args: Parameters<Finalizers[P]>) => ReturnType<Finalizers[P]>;
   };
 
   type EnhancedBuilder = Expand<ComposeBuilder<Units, {}> & FinalizerFns>;
 
-  return (): EnhancedBuilder => {
+  const builder = (): EnhancedBuilder => {
     const state: BuilderState = {};
 
     const data: BuilderStateData = {};
     const methods: BuilderStateMethods = {};
 
     for (const field of descriptor.fields) {
-      const unitDescriptor = descriptor.units[field];
-
-      methods[field] = { id: unitDescriptor.id };
+      methods[field] = { stateKey: field };
 
       data[field] = (...args: unknown[]) => {
-        const calls = state[unitDescriptor.id];
+        const calls = state[field];
 
         if (Array.isArray(calls)) {
           calls.push(args);
         } else {
-          state[unitDescriptor.id] = [args];
+          state[field] = [args];
         }
 
         return data;
@@ -173,20 +184,68 @@ export function createBuilder<
 
     assignBuilderMethods(state, methods);
 
-    if (options?.finalizer) {
-      for (const key of Object.keys(options.finalizer) as (keyof Finalizers & string)[]) {
-        const finalizer = options.finalizer[key];
+    if (options?.finalizers) {
+      for (const key of Object.keys(options.finalizers) as (keyof Finalizers & string)[]) {
+        const finalizer = options.finalizers[key];
 
-        data[key] = () => withBuilderState(state, () => finalizer());
+        data[key] = (...args: any[]) => {
+          return withBuilderState(state, () => finalizer(...args));
+        };
       }
     }
 
     return data as EnhancedBuilder;
   };
+
+  const metadata: BuilderMetadata<Units, Finalizers> = {
+    units: descriptor.units,
+    finalizers: (options?.finalizers || {}) as Finalizers,
+  };
+
+  Object.assign(builder, { [INTERNAL]: metadata });
+
+  return builder as (() => EnhancedBuilder) & Builder<Units, FinalizerFns>;
+}
+
+export type ExtendBuilderOptions<Units extends UnitRecord, Finalizers extends FinalizerRecord> = {
+  units?: Units;
+  finalizer?: Finalizers;
+};
+
+export function extendBuilder<
+  Units extends UnitRecord,
+  Finalizers extends FinalizerRecord,
+  ExtendUnits extends UnitRecord = {},
+  ExtendFinalizers extends FinalizerRecord = {},
+>(
+  builder: Builder<Units, Finalizers>,
+  args?: {
+    units?: BuilderDescriptor<ExtendUnits> | ExtendUnits;
+    finalizers?: ExtendFinalizers;
+  },
+) {
+  const metadata: BuilderMetadata<Units, Finalizers> = (builder as any)[INTERNAL];
+
+  args = args || {};
+
+  const extendUnits = isBuilderDescriptor(args.units) ? args.units.units : (args.units || {});
+  const extendFinalizers = args.finalizers || {};
+
+  const units = {
+    ...metadata.units,
+    ...extendUnits,
+  } as Units & ExtendUnits;
+
+  const finalizers = {
+    ...metadata.finalizers,
+    ...extendFinalizers,
+  } as Finalizers & ExtendFinalizers;
+
+  return createBuilder(units, { finalizers });
 }
 
 function isBuilderDescriptor<Units extends UnitRecord>(
-  value: BuilderDescriptor<Units> | Units,
+  value: BuilderDescriptor<Units> | Units | null | undefined,
 ): value is BuilderDescriptor<Units> {
-  return INTERNAL in value;
+  return !!value && INTERNAL in value;
 }

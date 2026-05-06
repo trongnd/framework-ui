@@ -3,7 +3,7 @@ const METHODS = Symbol('compose::methods');
 const STATE_STACK: Record<string, unknown>[] = [];
 
 export type BuilderStateData = Record<string, unknown>;
-export type BuilderStateMethods = Record<string, { id: string; }>;
+export type BuilderStateMethods = Record<string, { stateKey: string; }>;
 
 export type BuilderState = BuilderStateData & {
   [METHODS]?: BuilderStateMethods;
