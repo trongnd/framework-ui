@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@platform/form": "workspace:^",
+    "@platform/i18n": "workspace:^",
     "@platform/react": "workspace:^",
     "@platform/react.jsx_runtime": "workspace:^",
     "@platform/signal": "workspace:^",

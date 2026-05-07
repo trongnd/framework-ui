@@ -1,7 +1,7 @@
 import { useFieldOrRef } from '@platform/form/react';
 import { Validator } from '@platform/form/validate';
 import type { BuilderData } from '@ui.core/compose';
-import { useFieldState, useValidateHandler } from '../utils/form';
+import { useFieldState, useFieldValidation } from '../field/utils';
 import type { TextInputFormUnits } from './units';
 
 export function useTextInputHandler(args: {
@@ -13,7 +13,7 @@ export function useTextInputHandler(args: {
 
   const whitespace = data.whitespace.get();
 
-  useValidateHandler({
+  useFieldValidation({
     field,
     data,
     validators: data.validate.list(),
@@ -27,5 +27,5 @@ export function useTextInputHandler(args: {
     getValue: (value) => value?.toString() ?? '',
   });
 
-  return fieldState;
+  return { fieldState };
 }

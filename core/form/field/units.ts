@@ -1,6 +1,12 @@
 import { unit } from '@ui.core/compose';
 import { Units } from '../builder';
-import { FormUnits } from '../utils/form';
+
+export const FormUnits = {
+  label: Units.label,
+  required: Units.required,
+  requiredBoolean: Units.requiredBoolean,
+  requiredMessage: Units.requiredMessage,
+};
 
 export const FieldUnits = {
   use: unit.use(),
@@ -14,6 +20,7 @@ export const FieldUnits = {
   hideLabel: Units.visible,
   placeholder: Units.placeholder,
   hint: Units.hint,
+  hintLines: Units.hintLines,
   error: Units.error,
   requiredMark: Units.visible,
   readOnly: Units.readOnly,

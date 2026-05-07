@@ -1,5 +1,5 @@
 import { Units } from '../builder';
-import { FormUnits } from '../utils/form';
+import { FormUnits } from '../field';
 
 export type TextInputValue = string | number | null | undefined;
 

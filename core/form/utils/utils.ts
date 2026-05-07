@@ -5,7 +5,7 @@ import type { TextContent } from '@ui.core/utils/text';
 import type { DefaultAffixOptions } from '../field';
 
 export function getPlaceholderText(placeholder: TextContent) {
-  placeholder = textContent(placeholder, true);
+  placeholder = textContent(placeholder, { text: true });
 
   return ObjectUtils.isString(placeholder) ? StringUtils.trim(placeholder) : undefined;
 }

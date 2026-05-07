@@ -1,20 +1,11 @@
-import type { FieldControl, FieldValueAny, FieldValueOptional, FormDataBase } from '@platform/form/core';
+import type { FieldControl, FieldValueAny, FormDataBase } from '@platform/form/core';
 import { useSetFieldConfig, useSetFieldValidators, useValidateField } from '@platform/form/validate';
 import type { FieldValidatorMessage, FieldValidators } from '@platform/form/validate';
-import { useCallbackRef, useMemoizeValue } from '@platform/react/hooks';
-import { useComputed } from '@platform/signal/react';
 import type { BuilderData } from '@ui.core/compose';
 import type { TextContent } from '@ui.core/utils/text';
-import { Units } from '../builder';
+import type { FormUnits } from '../units';
 
-export const FormUnits = {
-  label: Units.label,
-  required: Units.required,
-  requiredBoolean: Units.requiredBoolean,
-  requiredMessage: Units.requiredMessage,
-};
-
-export function useValidateHandler<
+export function useFieldValidation<
   V extends FieldValueAny,
   D extends FormDataBase = any,
 >(args: {
@@ -51,37 +42,4 @@ export function useValidateHandler<
   });
 
   useValidateField(field);
-}
-
-export function useFieldState<
-  Value extends FieldValueAny,
-  Data extends FormDataBase = any,
-  DefaultedValue extends Value = Value,
->(args: {
-  field: FieldControl<Value, Data>;
-  getValue?(value: FieldValueOptional<Value>): DefaultedValue;
-}) {
-  const { field } = args;
-
-  const valueSignal = useComputed(() => {
-    let value = field.value;
-
-    if (args.getValue) value = args.getValue(value);
-
-    return value as DefaultedValue;
-  });
-
-  const setValue = useCallbackRef((value: Value) => {
-    field.set(value);
-  });
-
-  const unsetValue = useCallbackRef(() => {
-    field.unset();
-  });
-
-  return useMemoizeValue({
-    valueSignal,
-    setValue,
-    unsetValue,
-  });
 }
