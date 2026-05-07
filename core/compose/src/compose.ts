@@ -1,60 +1,9 @@
-import { assignBuilderMethods, withBuilderState } from './state';
-import type { BuilderState, BuilderStateData, BuilderStateMethods } from './state';
+import { createBuilderInternal } from './builder';
+import { INTERNAL } from './constants';
+import type { UnitDescriptor, UnitRecord } from './unit';
 
-const CONTEXT = Symbol('compose::context');
-const INTERNAL = Symbol('compose::internal');
-const BUILDER = Symbol('compose::builder');
-
-/* unit */
-
-type Unit<Builder = any> = (this: Builder, ...args: any[]) => any;
-
-export type UnitRecord = Record<string, UnitDescriptor>;
-
-export type UnitDescriptor<U extends Unit = any> = {
-  [INTERNAL]: { unit: U; };
-  id: string;
-};
-
-unit.idCounter = 0;
-
-export function unit<U extends Unit>(): UnitDescriptor<U> {
-  const id = 'unit:' + (unit.idCounter++);
-
-  return { [INTERNAL]: null as any, id };
-}
-
-unit.optional = function<T>() {
-  type UnitOptional<T> = {
-    <Builder>(this: Builder, value?: T): Builder;
-  };
-
-  return unit<UnitOptional<T>>();
-};
-
-unit.value = function<T>() {
-  type UnitValue<T> = {
-    <Builder>(this: Builder, value: T): Builder;
-  };
-
-  return unit<UnitValue<T>>();
-};
-
-unit.values = function<T>() {
-  type UnitValues<T> = {
-    <Builder>(this: Builder, ...values: T[]): Builder;
-  };
-
-  return unit<UnitValues<T>>();
-};
-
-unit.func = function<Args extends any[]>() {
-  type UnitFunc<Args extends any[]> = {
-    <Builder>(this: Builder, ...args: Args): Builder;
-  };
-
-  return unit<UnitFunc<Args>>();
-};
+const CONTEXT = Symbol('compose:context');
+const BUILDER = Symbol('compose:builder');
 
 /* compose */
 
@@ -160,49 +109,7 @@ export function createBuilder<
 
   type EnhancedBuilder = Expand<ComposeBuilder<Units, {}> & FinalizerFns>;
 
-  const builder = (): EnhancedBuilder => {
-    const state: BuilderState = {};
-
-    const data: BuilderStateData = {};
-    const methods: BuilderStateMethods = {};
-
-    for (const field of descriptor.fields) {
-      methods[field] = { stateKey: field };
-
-      data[field] = (...args: unknown[]) => {
-        const calls = state[field];
-
-        if (Array.isArray(calls)) {
-          calls.push(args);
-        } else {
-          state[field] = [args];
-        }
-
-        return data;
-      };
-    }
-
-    assignBuilderMethods(state, methods);
-
-    if (options?.finalizers) {
-      for (const key of Object.keys(options.finalizers) as (keyof Finalizers & string)[]) {
-        const finalizer = options.finalizers[key];
-
-        data[key] = (...args: any[]) => {
-          return withBuilderState(state, () => finalizer(...args));
-        };
-      }
-    }
-
-    return data as EnhancedBuilder;
-  };
-
-  const metadata: BuilderMetadata<Units, Finalizers> = {
-    units: descriptor.units,
-    finalizers: (options?.finalizers || {}) as Finalizers,
-  };
-
-  Object.assign(builder, { [INTERNAL]: metadata });
+  const builder = createBuilderInternal(descriptor, options?.finalizers || {});
 
   return builder as (() => EnhancedBuilder) & Builder<Units, FinalizerFns>;
 }

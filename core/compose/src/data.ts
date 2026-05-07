@@ -1,6 +1,7 @@
-import type { UnitArgs, UnitDescriptor, UnitRecord, UnitValue } from './compose';
-import { getBuilderMethods } from './state';
+import type { UnitArgs, UnitValue } from './compose';
+import { getBuilderMappings } from './state';
 import type { BuilderState } from './state';
+import type { UnitDescriptor, UnitRecord } from './unit';
 
 export type BuilderDataEntry<Unit extends UnitDescriptor> = {
   called(): boolean;
@@ -18,7 +19,7 @@ export type BuilderData<Units extends UnitRecord = any> = {
 export function createBuilderData<Units extends UnitRecord>(
   state: BuilderState | null,
 ): BuilderData<Units> {
-  const methods = getBuilderMethods(state);
+  const methods = getBuilderMappings(state);
 
   const data = {} as BuilderData<Units>;
 

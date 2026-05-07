@@ -44,16 +44,24 @@ export function fieldRenderWrapper(
 }
 
 export function createFieldRenderWrapper(
-  fn: FieldRenderWrapperFn,
+  ...fns: FieldRenderWrapperFn[]
 ) {
-  return (render: FieldRenderer) => applyFieldRenderWrapper(fn, render);
+  return (render: FieldRenderer) => applyFieldRenderWrapper(render, ...fns);
 }
 
 export function applyFieldRenderWrapper(
-  fn: FieldRenderWrapperFn,
   render: FieldRenderer,
+  ...fns: FieldRenderWrapperFn[]
 ) {
-  return createFieldRender(() => fn({ content: render() }));
+  return createFieldRender(() => {
+    let content = render();
+
+    fns.forEach((fn) => {
+      content = fn({ content });
+    });
+
+    return content;
+  });
 }
 
 /* builder */
