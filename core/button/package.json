@@ -1,0 +1,24 @@
+{
+  "name": "@ui.core/button",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": "22.18.0"
+  },
+  "dependencies": {
+    "@platform/form": "workspace:^",
+    "@platform/i18n": "workspace:^",
+    "@platform/react": "workspace:^",
+    "@platform/react.jsx_runtime": "workspace:^",
+    "@platform/signal": "workspace:^",
+    "@platform/utils": "workspace:^",
+    "@ui.core/compose": "workspace:^",
+    "@ui.core/utils": "workspace:^",
+    "react": "19.2.0"
+  },
+  "devDependencies": {
+    "@platform/bundler.types": "workspace:^",
+    "@platform/workspace.config": "workspace:^",
+    "@types/react": "19.2.14"
+  }
+}

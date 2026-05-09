@@ -1,13 +1,26 @@
-import { t } from '@platform/i18n/core';
+import { isMessageDescriptor, t } from '@platform/i18n/core';
 import type { MessageDescriptor, MessageParams } from '@platform/i18n/core';
-import type { ReactNode } from 'react';
+import { isValidElement } from 'react';
+import type { ReactElement } from 'react';
 
-export type TextContent = MessageDescriptor | ReactNode;
+export type TextContentPrimitive = ReactElement | string | number | null | undefined;
+export type TextContent = MessageDescriptor | TextContentPrimitive;
+
+export function isTextContent(value: unknown): value is TextContent {
+  return (
+    value === null ||
+    value === undefined ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    isMessageDescriptor(value) ||
+    isValidElement(value)
+  );
+}
 
 export function textContent(
   text: TextContent,
   args?: { text?: boolean; params?: MessageParams; },
-): ReactNode {
+): TextContentPrimitive {
   args = args || {};
 
   return args.text
