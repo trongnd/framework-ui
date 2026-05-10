@@ -3,13 +3,11 @@ import type { MessageDescriptor, MessageParams } from '@platform/i18n/core';
 import { isValidElement } from 'react';
 import type { ReactElement } from 'react';
 
-export type TextContentPrimitive = ReactElement | string | number | null | undefined;
+export type TextContentPrimitive = ReactElement | string | number;
 export type TextContent = MessageDescriptor | TextContentPrimitive;
 
 export function isTextContent(value: unknown): value is TextContent {
   return (
-    value === null ||
-    value === undefined ||
     typeof value === 'string' ||
     typeof value === 'number' ||
     isMessageDescriptor(value) ||
@@ -18,9 +16,11 @@ export function isTextContent(value: unknown): value is TextContent {
 }
 
 export function textContent(
-  text: TextContent,
+  text: TextContent | null | undefined,
   args?: { text?: boolean; params?: MessageParams; },
-): TextContentPrimitive {
+): TextContentPrimitive | null {
+  if (text === null || text === undefined) return null;
+
   args = args || {};
 
   return args.text
