@@ -1,6 +1,6 @@
-import { createComponent } from '@platform/react/component';
 import type { MaybePartialArgs, OmitProps, Type } from '@platform/utils/types';
-import type { ReactElement } from 'react';
+import { forwardRef } from 'react';
+import type { ForwardedRef, ReactElement } from 'react';
 
 export type ComponentVariantContext<Context, Config> = Context & {
   config: Config;
@@ -11,34 +11,40 @@ export type ComponentVariant<Context, Config> = {
   (context: ComponentVariantContext<Context, Config>): Config | void;
 };
 
-type ComponentRenderArgs<Options, Props> = {
+export type ComponentRenderArgs<Options, Props, Ref> = {
   options: Options;
   props: Props;
+  ref: ForwardedRef<Ref>;
 };
 
-type ComponentRender<Options, Props> = (
-  args: ComponentRenderArgs<Options, Props>,
+type ComponentRender<Options, Props, Ref> = (
+  args: ComponentRenderArgs<Options, Props, Ref>,
 ) => ReactElement | null;
 
-type CreateComponentOptions<Options, ComponentProps> = Options & {
+export type CreateComponentOptions<Options, ComponentProps> = Options & {
   componentProps?: Type<ComponentProps>;
 };
 
-export function createVariantComponent<Options, Props, Context, Config>(_args: {
+export function createVariantComponent<Options, Props, Context, Config, Ref = unknown>(_args: {
   factoryOptions: Type<Options>;
   componentProps: Type<Props>;
+  componentRef?: Type<Ref>;
   variantContext: Type<Context>;
   variantConfig: Type<Config>;
 }) {
-  let componentRender: ComponentRender<Options, Props> = () => null;
+  let componentRender: ComponentRender<Options, Props, Ref> = () => null;
 
   const create = <ComponentProps,>(
     ...args: MaybePartialArgs<CreateComponentOptions<Options, ComponentProps>>
   ) => {
     const options = (args[0] || {}) as Options;
 
-    return createComponent(function VariantComponent(props: Props & ComponentProps) {
-      return componentRender({ options, props });
+    return forwardRef<Ref, Props & ComponentProps>(function VariantComponent(props, ref) {
+      return componentRender({
+        options,
+        props: props as Props,
+        ref,
+      });
     });
   };
 
@@ -46,7 +52,7 @@ export function createVariantComponent<Options, Props, Context, Config>(_args: {
     return variant;
   };
 
-  const render = (render: ComponentRender<Options, Props>) => {
+  const render = (render: ComponentRender<Options, Props, Ref>) => {
     componentRender = render;
   };
 
