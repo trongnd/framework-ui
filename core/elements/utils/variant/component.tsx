@@ -49,11 +49,13 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
   const createComponent: CreateComponent<Options, Props, Context, Config> = (fn) => {
     const variant = createVariant(fn);
 
-    const { Component, setDefaultVariant } = createVariantComponent(define, { options });
+    const result = createVariantComponent(define, { options });
 
-    setDefaultVariant(variant);
+    result.setDefaultVariant(variant);
 
-    return Component;
+    result.setDefaultProps(Registry.getDefaultProps(Component));
+
+    return result.Component;
   };
 
   const createVariant: CreateVariant<Options, Props, Context, Config> = (...args: any[]): any => {
