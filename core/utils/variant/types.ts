@@ -1,5 +1,5 @@
 import type { MaybePartialArgs, Type } from '@platform/utils/types';
-import type { ComponentType, ForwardedRef, ReactElement } from 'react';
+import type { ComponentType, ForwardedRef, ReactElement, RefAttributes } from 'react';
 import type { DefineConfig, DefineConfigFn, VariantConfig } from './config';
 import type { VARIANT } from './utils';
 
@@ -38,7 +38,8 @@ export type VariantComponentProps<Options, Props, Context, Config> = Props & {
 };
 
 export type VariantComponent<Options, Props, Context, Config> = ComponentType<
-  VariantComponentProps<Options, Props, Context, Config>
+  & VariantComponentProps<Options, Props, Context, Config>
+  & RefAttributes<unknown>
 >;
 
 export type CreateComponent<Options, Props, Context, Config> = {
@@ -53,11 +54,19 @@ export type CreateVariant<Options, Props, Context, Config> = {
   <Params extends object>(
     params: Params | Type<Params>,
     fn: VariantFn<Options, Props & Params, Context, Config>,
-  ): (...args: MaybePartialArgs<Params>) => Variant<Options, Props & Params, Context, Config>;
+  ): (...args: MaybePartialArgs<[params: Params]>) => Variant<Options, Props & Params, Context, Config>;
 };
 
-export type CreateVariantFactory<Options, Props, Context, Config> = {
-  (fn: VariantFn<Options, Props, Context, Config>): Variant<Options, Props, Context, Config>;
+export type ExtendVariant = {
+  <Options, Props, Context, Config>(
+    variant: Variant<Options, Props, Context, Config>,
+    fn: VariantFn<Options, Props, Context, Config>,
+  ): Variant<Options, Props, Context, Config>;
+
+  <Args extends any[], Options, Props, Context, Config>(
+    variant: (...args: Args) => Variant<Options, Props, Context, Config>,
+    fn: VariantFn<Options, Props, Context, Config>,
+  ): (...args: Args) => Variant<Options, Props, Context, Config>;
 };
 
 export type SetDefaultVariant<Options, Props, Context, Config> = {

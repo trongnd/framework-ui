@@ -5,6 +5,7 @@ import type { ComponentType } from 'react';
 export namespace ModalStack {
   export type Item<T = any> = {
     uid: string;
+    layerGroup: number;
     Component: ComponentType<T>;
     //
     closeRequested: boolean;
@@ -23,11 +24,13 @@ export namespace ModalStack {
   export type AddOptions<T> = {
     Component: ComponentType<T>;
     props: T;
+    layerGroup?: number | null;
   };
 
   export function add<T = {}>(options: AddOptions<T>) {
     const item: Item<T> = {
       uid: 'modal:' + (uidCounter++).toString(),
+      layerGroup: options.layerGroup ?? 0,
       //
       Component: options.Component,
       closeRequested: false,
@@ -90,10 +93,6 @@ export namespace ModalStack {
     return signalItems.value.find((item) => item.uid === uid) || null;
   }
 
-  export function getIndex(uid: string) {
-    return signalItems.value.findIndex((item) => item.uid === uid);
-  }
-
   export function isCloseRequested(uid: string) {
     const item = getItem(uid);
 
@@ -103,10 +102,6 @@ export namespace ModalStack {
 
 export class ModalInstance<T = any> {
   constructor(private readonly _uid: string) {}
-
-  get index() {
-    return Math.max(0, ModalStack.getIndex(this._uid));
-  }
 
   get uid() {
     return this._uid;

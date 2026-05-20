@@ -4,18 +4,19 @@ import { Registry } from './registry';
 import { ComponentRender } from './render';
 import type {
   AnyVariant,
-  AnyVariantFn,
   CreateComponent,
   CreateVariant,
   DefineArgs,
   DefineFn,
+  ExtendVariant,
   RenderFn,
   SetDefaultProps,
   SetDefaultVariant,
   VariantComponent,
   VariantComponentProps,
 } from './types';
-import { isVariant, VARIANT } from './utils';
+import { isVariant } from './utils';
+import { _createVariant, _extendAnyVariant } from './variant';
 
 export function defineVariantComponent<Options, Props, Context, ConfigFn extends DefineConfigFn>(
   args: DefineArgs<Options, Props, Context, ConfigFn>,
@@ -58,40 +59,9 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
     return result.Component;
   };
 
-  const createVariant: CreateVariant<Options, Props, Context, Config> = (...args: any[]): any => {
-    let fn: AnyVariantFn = args[0];
-    let defaultParams: object | null = null;
-    let hasParams = false;
+  const createVariant = _createVariant as unknown as CreateVariant<Options, Props, Context, Config>;
 
-    if (args.length === 2) {
-      hasParams = true;
-      defaultParams = args[0];
-      fn = args[1];
-    }
-
-    const toVariant = (fn: AnyVariantFn) => {
-      const variant: AnyVariant = (...args) => fn(...args);
-
-      variant[VARIANT] = true;
-
-      return variant;
-    };
-
-    if (!hasParams) {
-      return toVariant((args) => fn(args));
-    }
-
-    return (params: object) =>
-      toVariant((args) => {
-        const props = {
-          ...defaultParams,
-          ...args.props,
-          ...params,
-        };
-
-        return fn({ ...args, props });
-      });
-  };
+  const extendVariant = _extendAnyVariant as ExtendVariant;
 
   const setDefaultVariant: SetDefaultVariant<Options, Props, Context, Config> = (variant) => {
     if (variant && !isVariant(variant)) {
@@ -109,6 +79,7 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
     Component,
     createComponent,
     createVariant,
+    extendVariant,
     setDefaultVariant,
     setDefaultProps,
   };

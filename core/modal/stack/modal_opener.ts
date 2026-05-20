@@ -18,6 +18,7 @@ export type ModalOpener<T, Instance = T> = (
 
 export type ModalOpenerOptions = {
   prepare?(): unknown;
+  layerGroup?: number;
 };
 
 export function modalOpener<T>(
@@ -27,18 +28,29 @@ export function modalOpener<T>(
   return async (...args: ModalOpenArgs<T>) => {
     await options?.prepare?.();
 
-    return openModal(resolver, ...args);
+    return openGroupModal(options?.layerGroup ?? null, resolver, ...args);
   };
 }
 
 export async function openModal<T>(resolver: ModalResolver<T>, ...[options]: ModalOpenArgs<T>) {
   const Component = await loadModalComponent(resolver);
 
-  return renderModal(Component, options);
+  return renderModal(null, Component, options);
 }
 
-export function renderModal<T>(Component: ComponentType<T>, ...[options]: ModalOpenArgs<T>) {
+export async function openGroupModal<T>(
+  layerGroup: number | null,
+  resolver: ModalResolver<T>,
+  ...[options]: ModalOpenArgs<T>
+) {
+  const Component = await loadModalComponent(resolver);
+
+  return renderModal(layerGroup, Component, options);
+}
+
+function renderModal<T>(layerGroup: number | null, Component: ComponentType<T>, ...[options]: ModalOpenArgs<T>) {
   return ModalStack.add({
+    layerGroup,
     Component,
     props: (options || {}) as T,
   });

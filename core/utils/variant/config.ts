@@ -1,6 +1,8 @@
 import type { AnyFunction, Expand, Type } from '@platform/utils/types';
+import { ObjectUtils } from '@platform/utils/utils';
 import { Registry } from './registry';
-import type { AnyDefineFn, DefineFn, RenderArgs, VariantFnArgs } from './types';
+import type { AnyDefineFn, DefineFn, RenderArgs, Variant, VariantFnArgs } from './types';
+import { isVariant } from './utils';
 
 type ConfigBase = Record<string, Type<unknown>>;
 type ConfigStateBase = Record<string, unknown>;
@@ -41,7 +43,11 @@ export function applyVariant<Options, Props, Context, Config>(applyVariantArgs: 
   const options = { ...args.options };
   const props = { ...args.props };
 
-  const variant = props.variant || Registry.getDefaultVariant(args.component);
+  let variant = props.variant || Registry.getDefaultVariant(args.component);
+
+  if (ObjectUtils.isFunction(variant) && !isVariant(variant)) {
+    variant = variant({} as any) as Variant<Options, Props, Context, Config>;
+  }
 
   const fnArgs: VariantFnArgs<Options, Props, Context, Config> = {
     ...context,

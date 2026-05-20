@@ -5,6 +5,8 @@ import type { ModalInstance } from './modal_stack';
 
 export type ModalContext<T = any> = {
   modal: ModalInstance<T>;
+  layerGroup: number;
+  index: number;
   isCloseRequested: boolean;
 };
 

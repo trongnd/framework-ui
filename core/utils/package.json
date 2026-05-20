@@ -7,7 +7,9 @@
   },
   "dependencies": {
     "@platform/i18n": "workspace:^",
+    "@platform/react": "workspace:^",
     "@platform/react.jsx_runtime": "workspace:^",
+    "@platform/utils": "workspace:^",
     "react": "19.2.0"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import { createComponent } from '@platform/react/component';
 import { useCallbackRef, useDidMount } from '@platform/react/hooks';
 import { useComputedValue, useSignalValue } from '@platform/signal/react';
+import { lodash } from '@platform/utils/lodash';
 import { Fragment, Suspense, useEffect, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ModalContextProvider, useModalInstance } from './modal_context';
@@ -17,13 +18,24 @@ export type ModalStackRenderProps = {
 export const ModalStackRender = createComponent((props: ModalStackRenderProps) => {
   const items = useSignalValue(ModalStack.signalItems);
 
+  const sortedItems = useMemo(() => {
+    return lodash.sortBy(items, [(item) => item.layerGroup, (_, index) => index]);
+  }, [items]);
+
   const onError: ModalStackErrorHandler = useCallbackRef((args) => {
     props.onError?.(args);
   });
 
   return (
     <Fragment key='modal_stack'>
-      {items.map((item) => <ModalRender key={item.uid} item={item} onError={onError} />)}
+      {sortedItems.map((item, index) => (
+        <ModalRender
+          key={item.uid}
+          item={item}
+          index={index}
+          onError={onError}
+        />
+      ))}
     </Fragment>
   );
 });
@@ -44,17 +56,23 @@ export function useModalStackState() {
 
 type ModalRenderProps = {
   item: ModalStack.Item;
+  index: number;
   onError: ModalStackErrorHandler;
 };
 
-const ModalRender = createComponent(({ item, onError }: ModalRenderProps) => {
+const ModalRender = createComponent(({ item, index, onError }: ModalRenderProps) => {
   const props = useComputedValue(() => ModalStack.signalProps.value[item.uid]);
 
   const modal = useMemo(() => ModalStack.instance(item.uid), [item.uid]);
   const isCloseRequested = useComputedValue(() => ModalStack.isCloseRequested(item.uid));
 
   return (
-    <ModalContextProvider modal={modal} isCloseRequested={isCloseRequested}>
+    <ModalContextProvider
+      modal={modal}
+      index={index}
+      layerGroup={item.layerGroup}
+      isCloseRequested={isCloseRequested}
+    >
       <ErrorBoundary
         fallbackRender={({ error }) => <ModalErrorHandler error={error} onError={onError} />}
       >
