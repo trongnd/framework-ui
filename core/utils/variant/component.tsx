@@ -12,11 +12,12 @@ import type {
   RenderFn,
   SetDefaultProps,
   SetDefaultVariant,
+  Variant,
   VariantComponent,
   VariantComponentProps,
+  VariantFn,
 } from './types';
-import { isVariant } from './utils';
-import { _createVariant, _extendAnyVariant } from './variant';
+import { isVariant, VARIANT } from './utils';
 
 export function defineVariantComponent<Options, Props, Context, ConfigFn extends DefineConfigFn>(
   args: DefineArgs<Options, Props, Context, ConfigFn>,
@@ -59,9 +60,16 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
     return result.Component;
   };
 
-  const createVariant = _createVariant as unknown as CreateVariant<Options, Props, Context, Config>;
+  const createVariant: CreateVariant<Options, Props, Context, Config> = (fn) => {
+    return toVariant(fn);
+  };
 
-  const extendVariant = _extendAnyVariant as ExtendVariant;
+  const extendVariant: ExtendVariant = (variant, fn) => {
+    return toVariant((args) => {
+      variant(args);
+      fn(args);
+    });
+  };
 
   const setDefaultVariant: SetDefaultVariant<Options, Props, Context, Config> = (variant) => {
     if (variant && !isVariant(variant)) {
@@ -83,6 +91,16 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
     setDefaultVariant,
     setDefaultProps,
   };
+}
+
+function toVariant<Options, Props, Context, Config>(fn: VariantFn<Options, Props, Context, Config>) {
+  const variant: Variant<Options, Props, Context, Config> = function Variant(args) {
+    return fn(args);
+  };
+
+  variant[VARIANT] = true;
+
+  return variant;
 }
 
 export function renderVariantComponent<Options, Props, Context, ConfigFn extends DefineConfigFn>(
