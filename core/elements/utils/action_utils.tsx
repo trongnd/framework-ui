@@ -12,7 +12,7 @@ export type ActionAlignmentOptions = {
 };
 
 export function filterActions<T extends ActionVisibleOptions>(
-  actions: T | null | undefined,
+  actions: T | T[] | null | undefined,
 ) {
   return ArrayUtils.toArray(actions).filter((action) => action.visible ?? true);
 }

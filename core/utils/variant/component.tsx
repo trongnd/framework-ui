@@ -95,7 +95,7 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
 
 function toVariant<Options, Props, Context, Config>(fn: VariantFn<Options, Props, Context, Config>) {
   const variant: Variant<Options, Props, Context, Config> = function Variant(args) {
-    return fn(args);
+    fn(args);
   };
 
   variant[VARIANT] = true;
