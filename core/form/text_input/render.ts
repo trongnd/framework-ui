@@ -18,7 +18,12 @@ export function useTextInputHandler(args: {
     data,
     validators: data.validate.list(),
     extraValidators: [
-      whitespace && Validator.whitespace(whitespace),
+      Validator.whitespace({
+        blank: false,
+        leading: false,
+        trailing: false,
+        ...whitespace,
+      }),
     ],
   });
 
