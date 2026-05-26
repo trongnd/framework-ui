@@ -64,6 +64,14 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
     return toVariant(fn);
   };
 
+  const createDefaultVariant: CreateVariant<Options, Props, Context, Config> = (fn) => {
+    const variant = createVariant(fn);
+
+    setDefaultVariant(variant);
+
+    return variant;
+  };
+
   const extendVariant: ExtendVariant = (variant, fn) => {
     return toVariant((args) => {
       variant(args);
@@ -86,6 +94,7 @@ export function createVariantComponent<Options, Props, Context, ConfigFn extends
   return {
     Component,
     createComponent,
+    createDefaultVariant,
     createVariant,
     extendVariant,
     setDefaultVariant,

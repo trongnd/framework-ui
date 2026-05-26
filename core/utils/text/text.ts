@@ -1,5 +1,6 @@
 import { isMessageDescriptor, t } from '@platform/i18n/core';
 import type { MessageDescriptor, MessageParams } from '@platform/i18n/core';
+import { ObjectUtils, StringUtils } from '@platform/utils/utils';
 import { isValidElement } from 'react';
 import type { ReactElement } from 'react';
 
@@ -26,4 +27,10 @@ export function textContent(
   return args.text
     ? t.try(t.text, text, args.params)
     : t.try(t.jsx, text, args.params);
+}
+
+export function textContentExtract(text: TextContent | null | undefined) {
+  text = textContent(text, { text: true });
+
+  return ObjectUtils.isString(text) ? StringUtils.trim(text) : undefined;
 }
